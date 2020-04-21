@@ -1,0 +1,16 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RibbonControl_Onload">
+	<ribbon>
+		<tabs>
+			<tab id="customTab" getLabel="RibbonControl_ApplicationName" insertAfterMso="Help">
+				<group id="customGroupControl" getLabel="RibbonControl_ControlLabel">
+					<button id="StartAutomaticConversion" size="large" keytip="E" getLabel="RibbonControl_StartAutomaticConversionLabel" onAction="RibbonControl_StartCsvOpener" getEnabled="RibbonControl_StartCsvOpener_getEnabled" imageMso="ChangeToAcceptInvitation" />
+					<button id="StopAutomaticConversion" size="large" keytip="D" getLabel="RibbonControl_StopAutomaticConversionLabel" onAction="RibbonControl_StopCsvOpener" getEnabled="RibbonControl_StopCsvOpener_getEnabled" imageMso="ChangeToDeclineInvitation" />
+				</group>
+				<group id="customGroupTools" getLabel="RibbonControl_ToolsLabel">
+					<button id="ManualConversion" size="large" keytip="C" getLabel="RibbonControl_ManualConversionLabel" onAction="RibbonControl_ConvertCsv" getEnabled="RibbonControl_ConvertCsv_getEnabled" imageMso="TableStyleNew" />
+					<button id="TextToNumberConversion" size="large" keytip="N" getLabel="RibbonControl_TextToNumberConversionLabel" onAction="RibbonControl_ConvertSelectionTextToNumber" imageMso="DataTypeNumber" />
+				</group>
+			</tab>
+		</tabs>
+	</ribbon>
+</customUI>
