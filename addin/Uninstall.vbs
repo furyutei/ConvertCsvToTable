@@ -27,6 +27,16 @@ IsJA = GetLocale() = 1041
 addInName = IIf(IsJA, "CSV変換", "Convert CSV To Table")
 addInFileName = "ConvertCsvToTable.xlam"
 
+'Excel動作中判定
+Err.Clear
+Set objExcel = GetObject(, "Excel.Application")
+If Err.Number = 0 Then
+    Set objExcel = Nothing
+    MsgBox IIf(IsJA, "Excel を全て閉じてください！", "Please close all Excel applications !"), vbExclamation,addInName
+    WScript.Quit
+End If
+Err.Clear
+
 IF MsgBox(IIf(IsJA, "アドインをアンインストールしますか？", "Do you want to uinstall this add-in ?"), vbYesNo + vbQuestion, addInName) = vbNo Then
     WScript.Quit
 End IF
@@ -53,12 +63,11 @@ Set objWshShell = CreateObject("WScript.Shell")
 Set objFileSys = CreateObject("Scripting.FileSystemObject")
 
 'インストール先パスの作成
-'(ex)C:\Users\[User]\AppData\Roaming\Microsoft\AddIns\[addInFileName]
 installPath = objWshShell.SpecialFolders("Appdata") & "\Microsoft\Addins\" & addInFileName
 
 'ファイル削除
 If objFileSys.FileExists(installPath) Then
-    objFileSys.DeleteFile installPath , True
+    objFileSys.DeleteFile installPath, True
 Else
     'MsgBox "アドインファイルが存在しません。", vbExclamation, addInName
 End If
@@ -69,5 +78,5 @@ Set objFileSys = Nothing
 IF Err.Number = 0 THEN
     MsgBox IIF(IsJA, "アドインのアンインストールが完了しました", "Uninstallation is now complete !"), vbInformation, addInName
 ELSE
-    MsgBox IIF(IsJA, "エラーが発生しました" & vbCrLF & "実行環境を確認してください", "An error has occurred." & vbCrLF & "Please check your environment."), vbExclamation, addInName
+    MsgBox IIf(IsJA, "エラーが発生しました: " & CStr(Err.Number) & vbCrLF & "実行環境を確認してください", "An error has occurred." & vbCrLF & "Please check your environment."), vbExclamation, addInName
 End IF

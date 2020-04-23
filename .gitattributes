@@ -1,0 +1,4 @@
+*.cls diff=sjis
+*.bas diff=sjis
+*.vbs diff=sjis
+

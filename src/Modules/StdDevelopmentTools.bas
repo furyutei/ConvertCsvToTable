@@ -2,11 +2,9 @@ Attribute VB_Name = "StdDevelopmentTools"
 Option Explicit
 
 Public Sub ExportAll()
-    Application.DisplayAlerts = False
     ConvertToAddIn
     ExportVisualBasicCode
     ExportCustumUI_Xml
-    Application.DisplayAlerts = True
 End Sub
 
 Public Sub ConvertToAddIn()
@@ -35,13 +33,16 @@ Public Sub ConvertToAddIn()
     
     ThisWorkbook.RemovePersonalInformation = True
     ThisWorkbook.RemoveDocumentInformation xlRDIDocumentProperties
+    Application.DisplayAlerts = False
     ThisWorkbook.SaveAs Filename:=TargetFilepath, FileFormat:=xlOpenXMLAddIn
 
     '[覚書]
     '  アドインとして保存後、元ファイルを保存しようとすると、
     '  「ファイル '...' は、前回保存された後、ほかのユーザーによって変更された可能性があります。操作を選択して下さい。」
     '  のような確認ダイアログが出るため、これを抑制するために上書き保存しておく
+    Application.DisplayAlerts = False
     ThisWorkbook.Save
+    Application.DisplayAlerts = True
 
     Debug.Print "Converted to " & TargetFilepath
 End Sub
@@ -66,7 +67,7 @@ Public Sub ExportVisualBasicCode()
     
     Count = 0
     
-    For Each VBComponent In ActiveWorkbook.VBProject.VBComponents
+    For Each VBComponent In ThisWorkbook.VBProject.VBComponents
         Select Case VBComponent.Type
             Case Document
                 Extension = ".cls"
@@ -89,7 +90,7 @@ Public Sub ExportVisualBasicCode()
         On Error Resume Next
         Err.Clear
         
-        Directory = Fso.BuildPath(ActiveWorkbook.Path, Relative_directory)
+        Directory = Fso.BuildPath(ThisWorkbook.Path, Relative_directory)
 
         If Not Fso.FolderExists(Directory) Then
             Call Fso.CreateFolder(Directory)

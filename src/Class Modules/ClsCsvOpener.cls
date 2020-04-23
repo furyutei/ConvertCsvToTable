@@ -98,16 +98,23 @@ Public Function ReadCsvText( _
 
     Dim Reg As Object: Set Reg = CreateObject("VBScript.RegExp")
     With Reg
-        ' UTF-16 BOM(&HFF, &HFE) がついている場合、および、NULL 文字が含まれている場合は取り除く
-        ' ※ファイルの最後に NULL 文字があると、Power Query の Binary.InferContentType 等が誤動作する模様
-        .Pattern = "(^\xFF\xFE|\x00+)"
         .Global = True
         .MultiLine = False
+
+        ' UTF-16 BOM(&HFF, &HFE) がついている場合・NULL 文字が含まれている場合は取り除く
+        ' ※ファイルの最後に NULL 文字があると、Power Query の Binary.InferContentType 等が誤動作する模様
+        .Pattern = "(^\ufeff|\u0000+)"
+        TextBuffer = .Replace(TextBuffer, "")
+
+        ' ファイルの最後が改行の場合はこれを取り除く
+        ' ※ファイルの最後に改行があると、余分な行ができてしまうため
+        .Pattern = "(\n+$)"
         TextBuffer = .Replace(TextBuffer, "")
     End With
  
     If DebugIsValid Then
-        Debug.Print Left(TextBuffer, 200)
+        Debug.Print Left(TextBuffer, 100)
+        Debug.Print Right(TextBuffer, 100)
         Debug.Print UBound(ByteBuffer) & " vs " & LenB(TextBuffer)
     End If
     
@@ -136,7 +143,8 @@ Public Sub AnalyzeCsvText( _
     Dim ColumnMark As Variant
     Dim StringColumnCounter As Long
     
-    If RightB(CsvText, 1) <> vbLf Then CsvText = CsvText & vbLf
+    TextBuffer = CsvText
+    'If Right(TextBuffer, 1) <> vbLf Then TextBuffer = TextBuffer & vbLf
     
     Set Reg = CreateObject("VBScript.RegExp")
     With Reg
@@ -144,8 +152,8 @@ Public Sub AnalyzeCsvText( _
         .MultiLine = False
 
         ' "～" で括られた一文字以上のデータを S に置換
-        .Pattern = "[\x20\f\r\t\v]*""(?:""""|[^""])+""[\x20\f\r\t\v]*(,|\n)"
-        TextBuffer = .Replace(CsvText, "S$1")
+        .Pattern = "[\x20\f\r\t\v]*""(?:""""|[^""])+""[\x20\f\r\t\v]*([,\n]|$)"
+        TextBuffer = .Replace(TextBuffer, "S$1")
 
         ' 余分な " 及び空白を削除
         .Pattern = "[""\x20\f\r\t\v]+"
@@ -155,11 +163,11 @@ Public Sub AnalyzeCsvText( _
         TextBuffer = Replace(TextBuffer, "N", "S")
 
         ' 数値を N に置換
-        .Pattern = "[\-+]?\d+\.?\d*(?:E[\-+]?\d+)?(,|\n)"
+        .Pattern = "[\-+]?\d+\.?\d*(?:E[\-+]?\d+)?([,\n]|$)"
         TextBuffer = .Replace(TextBuffer, "N$1")
 
         ' 一文字以上のデータを S に置換
-       .Pattern = "(?:[^,\nNS]|[^,\n]{2,})([,\n])"
+       .Pattern = "(?:[^,\nNS]|[^,\n]{2,})([,\n]|$)"
         TextBuffer = .Replace(TextBuffer, "S$1")
     End With
     
