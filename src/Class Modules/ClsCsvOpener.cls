@@ -642,13 +642,16 @@ Public Function ImportCsvFromFile( _
             .AutoFit
         End With
     
-        If HeaderRow = 1 Then
-            SourceSheet.Delete
-            Set ExtraDataRange = Nothing
-        Else
-            SourceRange.Delete
-            Set ExtraDataRange = TargetTable.Range
+    End If
     
+    If HeaderRow = 1 Then
+        SourceSheet.Delete
+        Set ExtraDataRange = Nothing
+    Else
+        SourceRange.Delete
+        Set ExtraDataRange = TargetTable.Range
+
+        If AdjustCellSize Then
             With ExtraDataRange.EntireColumn
                 .AutoFit
             End With
