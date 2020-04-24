@@ -45,9 +45,11 @@ Public Sub StopEventObservation()
 End Sub
 
 Public Function IsCsvFile( _
-    Filename As String _
+    Filepath As String _
 ) As Boolean
-    If LCase(Right(Filename, 4)) = ".csv" Then IsCsvFile = True
+    IsCsvFile = False
+    If Filepath = vbNullString Then Exit Function
+    If LCase(Right(Filepath, 4)) = ".csv" Then IsCsvFile = True
 End Function
 
 Public Function ReadCsvText( _
@@ -335,7 +337,10 @@ Public Function ImportCsvFromFile( _
     Dim QueryMformula As String
     Dim TargetQuery As WorkbookQuery
     Dim TargetQueryTable As QueryTable
+    Dim TargetConnection As WorkbookConnection
     Dim TargetTable As ListObject
+    Dim TempSheet As Worksheet
+    Dim TempString As String
     Dim TimeMeasurement As ClsTimeMeasurement: Set TimeMeasurement = New ClsTimeMeasurement: TimeMeasurement.TimeMeasurementIsValid = TimeMeasurementIsValid
 
     If MaxColumnNumber = 0 Then
@@ -344,19 +349,38 @@ Public Function ImportCsvFromFile( _
         Exit Function
     End If
 
-    If BaseSheet Is Nothing Then Set BaseSheet = ActiveWorkbook.ActiveSheet
+    If BaseSheet Is Nothing Then
+        'Set BaseSheet = ActiveWorkbook.ActiveSheet
+        Set BaseSheet = ActiveWorkbook.Worksheets(ActiveWorkbook.Worksheets.Count)
+        ' TODO: 便宜上、一番右端にあるシートを基準（元となるCSV）としているが、並び変えられていたら誤動作しうる
+    End If
     Set TargetBook = BaseSheet.Parent
 
-    On Error Resume Next
-    Set TargetQuery = TargetBook.Queries("CSVTable")
-    On Error GoTo 0
+'   ※覚書：Query は残さないように変更したため、これでは判定できなくなった
+'    On Error Resume Next
+'    Set TargetQuery = TargetBook.Queries("CSVTable")
+'    On Error GoTo 0
+'
+'    If Not TargetQuery Is Nothing Then
+'        Set ImportCsvFromFile = Nothing
+'        Set ExtraDataRange = Nothing
+'        Exit Function
+'    End If
 
-    If Not TargetQuery Is Nothing Then
-        Set ImportCsvFromFile = Nothing
-        Set ExtraDataRange = Nothing
-        Exit Function
-    End If
-
+    For Each TempSheet In TargetBook.Worksheets
+        Select Case Left(TempSheet.Name, 1)
+            Case "#", "@"
+                TempString = Right(TempSheet.Name, Len(TempSheet.Name) - 1)
+                If TempString = Left(BaseSheet.Name, Len(TempString)) Then
+                    ' 変換済みシートが存在する場合は終了
+                    ' TODO: シート名が変更されていたり基準シートの選別が誤っていたら誤動作しうる
+                    Set ImportCsvFromFile = Nothing
+                    Set ExtraDataRange = Nothing
+                    Exit Function
+                End If
+        End Select
+    Next TempSheet
+    
     Set TargetSheet = CreateCsvSheet(BaseSheet:=BaseSheet)
     Set TargetRange = TargetSheet.Range("$A$1")
 
@@ -445,7 +469,13 @@ Public Function ImportCsvFromFile( _
             .Refresh
             .Delete
         End With
+
+        For Each TargetConnection In TargetBook.Connections
+            TargetConnection.Delete
+        Next TargetConnection
     
+        TargetQuery.Delete
+
         MaxColumnNumber = CLng(TargetRange.Offset(1, 0).Value)
     End If
     
@@ -510,7 +540,13 @@ Public Function ImportCsvFromFile( _
 
         .Delete
     End With
-    
+
+    For Each TargetConnection In TargetBook.Connections
+        TargetConnection.Delete
+    Next TargetConnection
+
+    TargetQuery.Delete
+
     Set ImportCsvFromFile = TargetRange
     Set ExtraDataRange = Nothing
 
@@ -705,7 +741,8 @@ End Function
 
 
 Public Sub ConvertCsv( _
-    Optional TargetBook As Workbook _
+    Optional TargetBook As Workbook, _
+    Optional IsManual As Boolean = False _
 )
     Dim TimeMeasurement As ClsTimeMeasurement: Set TimeMeasurement = New ClsTimeMeasurement: TimeMeasurement.TimeMeasurementIsValid = TimeMeasurementIsValid
 
@@ -718,9 +755,16 @@ Public Sub ConvertCsv( _
     Filepath = TargetBook.FullName
     On Error GoTo 0
 
-    If Filepath = vbNullString Then Exit Sub
-    If Not IsCsvFile(Filepath) Then Exit Sub
-    
+    If Not IsCsvFile(Filepath) Then
+        If IsManual Then
+            MsgBox IIf( _
+                Application.International(xlCountryCode) = 81, _
+                "CSVファイルではありません", _
+                "It's not a CSV file !" _
+            )
+        End If
+        Exit Sub
+    End If
     If DebugIsValid Then Debug.Print "WorkbookOpen : " & Filepath
 
     Dim SavedCalculation As Long
@@ -803,11 +847,13 @@ Public Sub ConvertCsv( _
 
     If DataRange Is Nothing Then
         Debug.Print "DataRange Is Nothing: It failed to convert or has already converted !"
-        MsgBox IIf( _
-            Application.International(xlCountryCode) = 81, _
-            "既に変換済みのようです", _
-            "It failed to convert or has already converted !" _
-        )
+        If IsManual Then
+            MsgBox IIf( _
+                Application.International(xlCountryCode) = 81, _
+                "既に変換済みのようです", _
+                "It failed to convert or has already converted !" _
+            )
+        End If
     Else
         If DebugIsValid Then
             Debug.Print "DataRange: " & CStr(DataRange.Rows.Count) & " x " & CStr(DataRange.Columns.Count)

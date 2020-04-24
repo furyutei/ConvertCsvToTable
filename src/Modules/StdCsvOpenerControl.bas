@@ -17,7 +17,7 @@ End Sub
 
 Sub ConvertCsv()
     Dim CsvOpener As New ClsCsvOpener
-    CsvOpener.ConvertCsv
+    CsvOpener.ConvertCsv IsManual:=True
 End Sub
 
 Sub ConvertSelectionTextToNumber()
