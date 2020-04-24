@@ -767,16 +767,18 @@ Public Sub ConvertCsv( _
     End If
     If DebugIsValid Then Debug.Print "WorkbookOpen : " & Filepath
 
-    Dim SavedCalculation As Long
-    Dim SavedEnableEvents As Boolean
-    Dim SavedScreenUpdating As Boolean
-    Dim SavedDisplayAlerts As Boolean
+'    Dim SavedCalculation As Long
+'    Dim SavedEnableEvents As Boolean
+'    Dim SavedScreenUpdating As Boolean
+'    Dim SavedDisplayAlerts As Boolean
 
     With Application
-        SavedCalculation = .Calculation
-        SavedEnableEvents = .EnableEvents
-        SavedScreenUpdating = .ScreenUpdating
-        SavedDisplayAlerts = .DisplayAlerts
+'       TODO：不具合等で Application.Calculation に不正な値が入れられた場合にはオーバーフローエラーになったりする
+'           →値を保存して使うのはやめておく
+'        SavedCalculation = .Calculation
+'        SavedEnableEvents = .EnableEvents
+'        SavedScreenUpdating = .ScreenUpdating
+'        SavedDisplayAlerts = .DisplayAlerts
 
         If DebugIsValid Then
             ' デバッグ時はデフォルトのまま
@@ -873,10 +875,16 @@ EXIT_SUB:
     On Error GoTo 0
 
     With Application
-        .Calculation = SavedCalculation
-        .EnableEvents = SavedEnableEvents
-        .ScreenUpdating = SavedScreenUpdating
-        .DisplayAlerts = SavedDisplayAlerts
+'        .Calculation = SavedCalculation
+'        .EnableEvents = SavedEnableEvents
+'        .ScreenUpdating = SavedScreenUpdating
+'        .DisplayAlerts = SavedDisplayAlerts
+
+        .Calculation = xlCalculationAutomatic
+        .EnableEvents = True
+        .ScreenUpdating = True
+        .DisplayAlerts = True
+
         .StatusBar = False
     End With
 
