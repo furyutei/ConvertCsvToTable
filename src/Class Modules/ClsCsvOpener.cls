@@ -54,7 +54,7 @@ End Function
 
 Public Function ReadCsvText( _
     Filepath As String, _
-    Optional FileCharset As String = "AUTO" _
+    Optional ByVal FileCharset As String = "AUTO" _
 ) As String
     Dim FileNumber As Long
     Dim ByteBuffer() As Byte
@@ -64,13 +64,21 @@ Public Function ReadCsvText( _
     Dim ResultByteBuffer() As Byte
     Dim Counter As Long
 
+    ' ファイルをバイナリとしてバイト配列に読み込み
     FileNumber = FreeFile
     Open Filepath For Binary As #FileNumber
     ByteLength = LOF(FileNumber)
-    ReDim ByteBuffer(ByteLength)
+    ReDim ByteBuffer(0 To ByteLength - 1)
     Get #FileNumber, 1, ByteBuffer
     Close #FileNumber
     
+    If FileCharset = "AUTO" And 3 <= ByteLength Then
+        ' BOM 付のものは UTF-8 とみなす
+        If ByteBuffer(0) = &HEF And ByteBuffer(1) = &HBB And ByteBuffer(2) = &HBF Then
+            FileCharset = "utf-8"
+        End If
+    End If
+
     Set AdodbStream = CreateObject("ADODB.Stream")
     With AdodbStream
         .Mode = 3 ' adModeRead(2), adModeReadWrite(3)
@@ -84,6 +92,7 @@ Public Function ReadCsvText( _
         '  「ファイルを開けませんでした(3002)(adErrOpeningFile)」（.Mode=3の場合）
         '  「このコンテキストで操作は許可されていません(3219)(adErrIllegalOperation)」（.Mode=2の場合）
         '   のようなエラーとなってしまう
+        '→一度バイナリで読み込んだものを ADODB.Stream に書き込み、これをテキストとして読み出す
         
         .Type = 1 ' adTypeBinary(1), adTypeText(2)
         .Write ByteBuffer
