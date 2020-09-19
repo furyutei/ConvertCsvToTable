@@ -46,6 +46,25 @@ Sub ConvertSelectionTextToNumber()
     On Error GoTo 0
 End Sub
 
+Sub ConvertSelectionTextToLink()
+    If Selection Is Nothing Then Exit Sub
+
+    Dim TargetRange As Range
+    Dim TempCell As Range
+
+    Set TargetRange = Selection
+
+    On Error Resume Next
+    For Each TempCell In TargetRange.Cells
+        If TempCell.Hyperlinks.Count = 0 Then
+            If Replace(TempCell.Value, "http:", "https:") Like "https://*" Then
+                TempCell.Worksheet.Hyperlinks.Add Anchor:=TempCell, Address:=TempCell.Value
+            End If
+        End If
+    Next
+    On Error GoTo 0
+End Sub
+
 Sub UpdateRiboonControl()
     On Error Resume Next
     RibbonUI.InvalidateControl "StartAutomaticConversion"
@@ -72,6 +91,10 @@ End Sub
 
 Sub RibbonControl_ConvertSelectionTextToNumber(ByVal control As IRibbonControl)
     ConvertSelectionTextToNumber
+End Sub
+
+Sub RibbonControl_ConvertSelectionTextToLink(ByVal control As IRibbonControl)
+    ConvertSelectionTextToLink
 End Sub
 
 Sub RibbonControl_StartCsvOpener_getEnabled(ByVal RibbonControl As IRibbonControl, ByRef ReturnedVal)
@@ -141,6 +164,13 @@ Sub RibbonControl_TextToNumberConversionLabel(ByVal RibbonControl As IRibbonCont
     Select Case Application.International(xlCountryCode)
         Case 81: ReturnedVal = "文字を数値に変換"
         Case Else: ReturnedVal = "Text to Number Conversion"
+    End Select
+End Sub
+
+Sub RibbonControl_TextToLinkConversionLabel(ByVal RibbonControl As IRibbonControl, ByRef ReturnedVal)
+    Select Case Application.International(xlCountryCode)
+        Case 81: ReturnedVal = "ハイパーリンクに変換"
+        Case Else: ReturnedVal = "Text to HyperLink Conversion"
     End Select
 End Sub
 

@@ -9,6 +9,7 @@
 				<group id="customGroupTools" getLabel="RibbonControl_ToolsLabel">
 					<button id="ManualConversion" size="large" keytip="C" getLabel="RibbonControl_ManualConversionLabel" onAction="RibbonControl_ConvertCsv" getEnabled="RibbonControl_ConvertCsv_getEnabled" imageMso="TableStyleNew" />
 					<button id="TextToNumberConversion" size="large" keytip="N" getLabel="RibbonControl_TextToNumberConversionLabel" onAction="RibbonControl_ConvertSelectionTextToNumber" imageMso="DataTypeNumber" />
+					<button id="TextToLinkConversion" size="large" keytip="L" getLabel="RibbonControl_TextToLinkConversionLabel" onAction="RibbonControl_ConvertSelectionTextToLink" imageMso="DataTypeHyperlink" />
 				</group>
 			</tab>
 		</tabs>
