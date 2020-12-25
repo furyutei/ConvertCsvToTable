@@ -138,7 +138,7 @@ Public Sub AnalyzeCsvText( _
     Optional ByRef MaxColumnNumber As Long, _
     Optional ByRef PersumedHeaderRow As Long, _
     Optional ByRef PersumedColumnAttributes As Variant, _
-    Optional ByVal SearchHeaderRowLimit As Long = 10 _
+    Optional ByVal SearchHeaderRowLimit As Long = 30 _
 )
     Dim Reg As Object
     Dim TextBuffer As String
@@ -332,7 +332,7 @@ Public Function ImportCsvFromFile( _
     Optional FileCharset As String = "UTF-8", _
     Optional MaxColumnNumber As Long = -1, _
     Optional HeaderRow As Long = -1, _
-    Optional SearchHeaderRowLimit As Long = 10, _
+    Optional SearchHeaderRowLimit As Long = 30, _
     Optional ColumnAttributes As Variant, _
     Optional AdjustCellSize As Boolean = True, _
     Optional MaxColumnWidth As Long = 30, _
